@@ -1,4 +1,4 @@
 import grpc_kv_server
 
 if __name__ == "__main__":
-    print("Running CLI server.")
+    grpc_kv_server.run_server()
