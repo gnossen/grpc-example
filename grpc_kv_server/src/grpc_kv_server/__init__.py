@@ -27,12 +27,14 @@ class KeyValueStoreServer(key_value_pb2_grpc.KeyValueStoreServicer):
         self._kv_store = KeyValueStore()
 
     def GetValue(self, request, context):
+        logging.info("Received Get request from {}".format(context.peer()))
         value = self._kv_store.get(request.key)
         key_value_pair = key_value_pb2.KeyValuePair(key=request.key,
                                                     value=value)
         return key_value_pb2.GetResponse(key_value_pair=key_value_pair)
 
     def StoreValue(self, request, context):
+        logging.info("Received Store request from {}".format(context.peer()))
         if not request.HasField("key_value_pair"):
             context.abort(grpc.StatusCode.INVALID_ARGUMENT,
                           "Request must have 'key_value_pair' field.")
@@ -62,7 +64,7 @@ def _run_server_non_blocking(host, port):
 
 
 def run_server(host='localhost', port=50051):
-    _run_server_non_blocking(host, port)
+    server, _ = _run_server_non_blocking(host, port)
     _await_termination(server)
 
 
