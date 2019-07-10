@@ -1,4 +1,19 @@
+import argparse
+import logging
+
 import grpc_kv_server
 
 if __name__ == "__main__":
-    grpc_kv_server.run_server()
+    logging.basicConfig(level=logging.INFO)
+    parser = argparse.ArgumentParser(
+        description="An in-memory key-value store.")
+    parser.add_argument('--port',
+                        '-p',
+                        help='The port on which to serve.',
+                        type=int,
+                        default=50051)
+    parser.add_argument('--host',
+                        help='The host on which to serve.',
+                        default='localhost')
+    args = parser.parse_args()
+    grpc_kv_server.run_server(host=args.host, port=args.port)
