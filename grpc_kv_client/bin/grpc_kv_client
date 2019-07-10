@@ -9,8 +9,12 @@ def get(args):
     print(grpc_kv_client.get(args.server, args.key))
 
 
-def store(args):
-    grpc_kv_client.store(args.server, args.key, args.value)
+def create(args):
+    grpc_kv_client.create(args.server, args.key, args.value)
+
+
+def update(args):
+    grpc_kv_client.update(args.server, args.key, args.value)
 
 
 if __name__ == "__main__":
@@ -22,11 +26,16 @@ if __name__ == "__main__":
         help="The server target to which to connect.",
         default="localhost:50051")
     subparsers = parser.add_subparsers(dest="subparser_name")
-    store_parser = subparsers.add_parser(
-        "store", help="Associate a value with a key.")
-    store_parser.add_argument("key")
-    store_parser.add_argument("value")
-    store_parser.set_defaults(func=store)
+    create_parser = subparsers.add_parser(
+        "create", help="Create a new record.")
+    create_parser.add_argument("key")
+    create_parser.add_argument("value")
+    create_parser.set_defaults(func=create)
+    update_parser = subparsers.add_parser(
+        "update", help="Update an existing record.")
+    update_parser.add_argument("key")
+    update_parser.add_argument("value")
+    update_parser.set_defaults(func=update)
     get_parser = subparsers.add_parser(
         "get", help="Get the value associated with a key.")
     get_parser.add_argument("key")

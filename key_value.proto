@@ -2,38 +2,40 @@ syntax = "proto3";
 
 package key_value;
 
-// A simple key-value storage service.
-service KeyValueStore {
-  // Look up the value associated with a given key.
-  rpc GetValue(GetRequest) returns (GetResponse) {}
-
-  // Look up the value associated with a given key.
-  rpc StoreValue(StoreRequest) returns (GetResponse) {}
-}
-
-// A request for the value associated with a given key.
-message GetRequest {
-  string key = 1;
-}
-
-
 // A key-value pair.
-message KeyValuePair {
+message Record {
   // The key identifying the pair.
-  string key = 1;
+  string name = 1;
 
   // The string value of the pari.
   string value = 2;
 }
 
-message StoreRequest {
-  KeyValuePair key_value_pair = 1;
+// A request for the value associated with a given key.
+message GetRecordRequest {
+  string name = 1;
 }
 
-message GetResponse {
-  KeyValuePair key_value_pair = 1;
+// A request to create a new record.
+message CreateRecordRequest {
+  // The Record to create.
+  Record record = 1;
 }
 
-message StoreResponse {
-  KeyValuePair key_value_pair = 1;
+// A request to update an existing record.
+message UpdateRecordRequest {
+  // The record to update.
+  Record record = 1;
+}
+
+// A simple key-value store service.
+service KeyValueStore {
+  // Look up the value associated with a given key.
+  rpc GetRecord(GetRecordRequest) returns (Record) {}
+
+  // Associate a value with a given key.
+  rpc CreateRecord(CreateRecordRequest) returns (Record) {}
+
+  // Update the value associated with a given key.
+  rpc UpdateRecord(UpdateRecordRequest) returns (Record) {}
 }

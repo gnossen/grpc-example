@@ -27,20 +27,19 @@ class TestGrpcKvServer(unittest.TestCase):
         with _test_server() as (server, port):
             with grpc.insecure_channel('localhost:{}'.format(port)) as channel:
                 stub = key_value_pb2_grpc.KeyValueStoreStub(channel)
-                store_request = key_value_pb2.StoreRequest(
-                    key_value_pair=key_value_pb2.KeyValuePair(
-                        key="golden-retriever",
+                create_request = key_value_pb2.CreateRecordRequest(
+                    record=key_value_pb2.Record(
+                        name="golden-retriever",
                         value="pancakes",
                     ))
-                store_response = stub.StoreValue(store_request,
-                                                 wait_for_ready=True)
-                self.assertEqual(store_response.key_value_pair,
-                                 store_request.key_value_pair)
+                create_response = stub.CreateRecord(
+                    create_request, wait_for_ready=True)
+                self.assertEqual(create_request.record, create_response)
 
-                get_request = key_value_pb2.GetRequest(key="golden-retriever")
-                get_response = stub.GetValue(get_request)
-                self.assertEqual(get_response.key_value_pair,
-                                 store_request.key_value_pair)
+                get_request = key_value_pb2.GetRecordRequest(
+                    name="golden-retriever")
+                get_response = stub.GetRecord(get_request)
+                self.assertEqual(get_response, create_request.record)
 
 
 if __name__ == "__main__":

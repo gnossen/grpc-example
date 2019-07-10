@@ -21,27 +21,44 @@ class KeyValueStore:
     def get(self, key):
         return self._data[key]
 
+    def exists(self, key):
+        return key in self._data
+
 
 class KeyValueStoreServer(key_value_pb2_grpc.KeyValueStoreServicer):
     def __init__(self):
         self._kv_store = KeyValueStore()
 
-    def GetValue(self, request, context):
+    def GetRecord(self, request, context):
         logging.info("Received Get request from {}".format(context.peer()))
-        value = self._kv_store.get(request.key)
-        key_value_pair = key_value_pb2.KeyValuePair(key=request.key,
-                                                    value=value)
-        return key_value_pb2.GetResponse(key_value_pair=key_value_pair)
+        value = self._kv_store.get(request.name)
+        return key_value_pb2.Record(name=request.name, value=value)
 
-    def StoreValue(self, request, context):
+    def CreateRecord(self, request, context):
         logging.info("Received Store request from {}".format(context.peer()))
-        if not request.HasField("key_value_pair"):
+        if not request.HasField("record"):
             context.abort(grpc.StatusCode.INVALID_ARGUMENT,
-                          "Request must have 'key_value_pair' field.")
-        self._kv_store.store(request.key_value_pair.key,
-                             request.key_value_pair.value)
-        return key_value_pb2.StoreResponse(
-            key_value_pair=request.key_value_pair)
+                          "Request must have 'record' field.")
+        if self._kv_store.exists(request.record.name):
+            context.abort(
+                grpc.StatusCode.ALREADY_EXISTS,
+                "Record at key '{}' already exists.".format(
+                    request.record.name))
+        self._kv_store.store(request.record.name, request.record.value)
+        return request.record
+
+    def UpdateRecord(self, request, context):
+        logging.info("Received Update request from {}".format(context.peer()))
+        if not request.HasField("record"):
+            context.abort(grpc.StatusCode.INVALID_ARGUMENT,
+                          "Request must have 'record' field.")
+        if not self._kv_store.exists(request.record.name):
+            context.abort(
+                grpc.StatusCode.NOT_FOUND,
+                "Record at key '{}' does not exist.".format(
+                    request.record.name))
+        self._kv_store.store(request.record.name, request.record.value)
+        return request.record
 
 
 def _await_termination(server):
