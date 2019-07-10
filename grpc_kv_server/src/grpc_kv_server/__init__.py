@@ -31,11 +31,11 @@ class KeyValueStoreServer(key_value_pb2_grpc.KeyValueStoreServicer):
 
     def GetRecord(self, request, context):
         logging.info("Received Get request from {}".format(context.peer()))
-        if not self._kv_store.exists(request.record.name):
+        if not self._kv_store.exists(request.name):
             context.abort(
                 grpc.StatusCode.NOT_FOUND,
                 "Record at key '{}' does not exist.".format(
-                    request.record.name))
+                    request.name))
         value = self._kv_store.get(request.name)
         return key_value_pb2.Record(name=request.name, value=value)
 
