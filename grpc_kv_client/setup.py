@@ -6,6 +6,7 @@ if __name__ == "__main__":
     setuptools.setup(
         name="grpc-kv-client",
         install_requires=["grpcio"],
+        tests_require=["grpcio-testing"],
         setup_requires=["grpcio-tools"],
         author="Richard Belleville",
         author_email="rbellevi@google.com",

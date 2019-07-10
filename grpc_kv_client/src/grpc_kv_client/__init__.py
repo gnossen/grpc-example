@@ -4,34 +4,55 @@ import key_value_pb2
 import key_value_pb2_grpc
 
 
-def get(server, key):
-    with grpc.insecure_channel(server) as channel:
-        stub = key_value_pb2_grpc.KeyValueStoreStub(channel)
-        get_request = key_value_pb2.GetRecordRequest(name=key)
-        record = stub.GetRecord(get_request)
-        return record.value
+def _get(channel, key):
+    stub = key_value_pb2_grpc.KeyValueStoreStub(channel)
+    get_request = key_value_pb2.GetRecordRequest(name=key)
+    record = stub.GetRecord(get_request)
+    return record.value
 
 
-def create(server, key, value):
-    with grpc.insecure_channel(server) as channel:
-        stub = key_value_pb2_grpc.KeyValueStoreStub(channel)
-        create_request = key_value_pb2.CreateRecordRequest(
-            record=key_value_pb2.Record(
-                name=key,
-                value=value,
-            ))
-        record = stub.CreateRecord(create_request)
+def get(server, key, channel=None):
+    if channel is not None:
+        return _get(channel, key)
+    else:
+        with grpc.insecure_channel(server) as channel:
+            return _get(channel, key)
 
 
-def update(server, key, value):
-    with grpc.insecure_channel(server) as channel:
-        stub = key_value_pb2_grpc.KeyValueStoreStub(channel)
-        update_request = key_value_pb2.UpdateRecordRequest(
-            record=key_value_pb2.Record(
-                name=key,
-                value=value,
-            ))
-        update_response = stub.UpdateRecord(update_request)
+def _create(channel, key, value):
+    stub = key_value_pb2_grpc.KeyValueStoreStub(channel)
+    create_request = key_value_pb2.CreateRecordRequest(
+        record=key_value_pb2.Record(
+            name=key,
+            value=value,
+        ))
+    record = stub.CreateRecord(create_request)
+
+
+def create(server, key, value, channel=None):
+    if channel is not None:
+        _create(channel, key, value)
+    else:
+        with grpc.insecure_channel(server) as channel:
+            _create(channel, key, value)
+
+
+def _update(channel, key, value):
+    stub = key_value_pb2_grpc.KeyValueStoreStub(channel)
+    update_request = key_value_pb2.UpdateRecordRequest(
+        record=key_value_pb2.Record(
+            name=key,
+            value=value,
+        ))
+    update_response = stub.UpdateRecord(update_request)
+
+
+def update(server, key, value, channel=None):
+    if channel is not None:
+        _update(channel, key, value)
+    else:
+        with grpc.insecure_channel(server) as channel:
+            _update(channel, key, value)
 
 
 __all__ = [get, create, update]

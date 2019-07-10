@@ -34,8 +34,7 @@ class KeyValueStoreServer(key_value_pb2_grpc.KeyValueStoreServicer):
         if not self._kv_store.exists(request.name):
             context.abort(
                 grpc.StatusCode.NOT_FOUND,
-                "Record at key '{}' does not exist.".format(
-                    request.name))
+                "Record at key '{}' does not exist.".format(request.name))
         value = self._kv_store.get(request.name)
         return key_value_pb2.Record(name=request.name, value=value)
 
