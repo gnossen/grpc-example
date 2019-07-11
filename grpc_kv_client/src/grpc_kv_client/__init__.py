@@ -55,4 +55,21 @@ def update(server, key, value, channel=None):
             _update(channel, key, value)
 
 
+def _watch(channel, key):
+    stub = key_value_pb2_grpc.KeyValueStoreStub(channel)
+    watch_request = key_value_pb2.WatchRecordRequest(name=key)
+    for record in stub.WatchRecord(watch_request):
+        yield record.value
+
+
+def watch(server, key, channel=None):
+    if channel is not None:
+        for value in _watch(channel, key):
+            yield value
+    else:
+        with grpc.insecure_channel(server) as channel:
+            for value in _watch(channel, key):
+                yield value
+
+
 __all__ = [get, create, update]
