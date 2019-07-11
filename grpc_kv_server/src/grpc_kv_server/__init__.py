@@ -35,7 +35,6 @@ class Record:
         while not stop_event.is_set():
             with self._lock:
                 self._condition.wait(timeout=_REACTION_TIME.total_seconds())
-            with self._lock:
                 if self._epoch == initial_epoch:
                     continue
                 epoch_difference = min(self._epoch - initial_epoch,
