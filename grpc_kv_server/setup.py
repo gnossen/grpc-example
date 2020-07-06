@@ -5,8 +5,7 @@ import grpc_tools.command
 if __name__ == "__main__":
     setuptools.setup(
         name="grpc-kv-server",
-        install_requires=["grpcio"],
-        setup_requires=["grpcio-tools"],
+        install_requires=["grpcio", "grpcio-tools"],
         author="Richard Belleville",
         author_email="rbellevi@google.com",
         description="An example usage of gRPC Python.",

@@ -8,8 +8,8 @@ import time
 
 import grpc
 
-import key_value_pb2
-import key_value_pb2_grpc
+protos = grpc.protos("key_value.proto")
+services = grpc.services("key_value.proto")
 
 _ONE_DAY = datetime.timedelta(days=1)
 
@@ -70,7 +70,7 @@ class KeyValueStore:
                 yield value
 
 
-class KeyValueStoreServer(key_value_pb2_grpc.KeyValueStoreServicer):
+class KeyValueStoreServer(services.KeyValueStoreServicer):
     def __init__(self):
         self._kv_store = KeyValueStore()
 
@@ -81,7 +81,7 @@ class KeyValueStoreServer(key_value_pb2_grpc.KeyValueStoreServicer):
                 grpc.StatusCode.NOT_FOUND,
                 "Record at key '{}' does not exist.".format(request.name))
         value = self._kv_store.get(request.name)
-        return key_value_pb2.Record(name=request.name, value=value)
+        return protos.Record(name=request.name, value=value)
 
     def CreateRecord(self, request, context):
         logging.info("Received Store request from {}".format(context.peer()))
@@ -123,7 +123,7 @@ class KeyValueStoreServer(key_value_pb2_grpc.KeyValueStoreServicer):
 
         context.add_callback(on_rpc_done)
         for value in self._kv_store.watch(request.name, stop_event):
-            yield key_value_pb2.Record(name=request.name, value=value)
+            yield protos.Record(name=request.name, value=value)
         logging.info("Terminated Watch request with {}".format(context.peer()))
 
 
@@ -138,7 +138,7 @@ def _await_termination(server):
 
 def _run_server_non_blocking(host, port):
     server = grpc.server(concurrent.futures.ThreadPoolExecutor())
-    key_value_pb2_grpc.add_KeyValueStoreServicer_to_server(
+    services.add_KeyValueStoreServicer_to_server(
         KeyValueStoreServer(), server)
     actual_port = server.add_insecure_port('{}:{}'.format(host, port))
     logging.info("Server listening at {}:{}".format(host, actual_port))

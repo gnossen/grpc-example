@@ -1,14 +1,19 @@
 import concurrent.futures
 import contextlib
+import os
 import unittest
 import threading
 import queue
+import sys
 
 import grpc_kv_server
 
 import grpc
-import key_value_pb2
-import key_value_pb2_grpc
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
+
+protos = grpc.protos("key_value.proto")
+services = grpc.services("key_value.proto")
 
 _TEST_VALUES = ("air-bud", "doug-the-dog", "the-one-from-full-house")
 
@@ -50,9 +55,9 @@ class TestGrpcKvServer(unittest.TestCase):
     def test_with_grpc_in_a_single_process(self):
         with _test_server() as (server, port):
             with grpc.insecure_channel('localhost:{}'.format(port)) as channel:
-                stub = key_value_pb2_grpc.KeyValueStoreStub(channel)
-                create_request = key_value_pb2.CreateRecordRequest(
-                    record=key_value_pb2.Record(
+                stub = services.KeyValueStoreStub(channel)
+                create_request = protos.CreateRecordRequest(
+                    record=protos.Record(
                         name="golden-retriever",
                         value="pancakes",
                     ))
@@ -60,7 +65,7 @@ class TestGrpcKvServer(unittest.TestCase):
                     create_request, wait_for_ready=True)
                 self.assertEqual(create_request.record, create_response)
 
-                get_request = key_value_pb2.GetRecordRequest(
+                get_request = protos.GetRecordRequest(
                     name="golden-retriever")
                 get_response = stub.GetRecord(get_request)
                 self.assertEqual(get_response, create_request.record)
@@ -68,14 +73,14 @@ class TestGrpcKvServer(unittest.TestCase):
     def test_server_watch(self):
         with _test_server() as (server, port):
             with grpc.insecure_channel('localhost:{}'.format(port)) as channel:
-                stub = key_value_pb2_grpc.KeyValueStoreStub(channel)
-                create_request = key_value_pb2.CreateRecordRequest(
-                    record=key_value_pb2.Record(
+                stub = services.KeyValueStoreStub(channel)
+                create_request = protos.CreateRecordRequest(
+                    record=protos.Record(
                         name="golden-retriever",
                         value="pancakes",
                     ))
                 stub.CreateRecord(create_request, wait_for_ready=True)
-                watch_request = key_value_pb2.WatchRecordRequest(
+                watch_request = protos.WatchRecordRequest(
                     name="golden-retriever")
 
                 responses = queue.Queue()
@@ -97,14 +102,14 @@ class TestGrpcKvServer(unittest.TestCase):
                 # to be established.
                 while responses.empty():
                     stub.UpdateRecord(
-                        key_value_pb2.UpdateRecordRequest(
-                            record=key_value_pb2.Record(
+                        protos.UpdateRecordRequest(
+                            record=protos.Record(
                                 name="golden-retriever", value=_SENTINEL)))
                 # Append test values.
                 for value in _TEST_VALUES:
                     stub.UpdateRecord(
-                        key_value_pb2.UpdateRecordRequest(
-                            record=key_value_pb2.Record(
+                        protos.UpdateRecordRequest(
+                            record=protos.Record(
                                 name="golden-retriever", value=value)))
                 # Ensure the queue has been filled with the collected values.
                 gather_future.result()

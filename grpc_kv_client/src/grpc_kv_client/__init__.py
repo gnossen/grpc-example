@@ -1,12 +1,11 @@
 import grpc
 
-import key_value_pb2
-import key_value_pb2_grpc
-
+protos = grpc.protos("key_value.proto")
+services = grpc.services("key_value.proto")
 
 def _get(channel, key):
-    stub = key_value_pb2_grpc.KeyValueStoreStub(channel)
-    get_request = key_value_pb2.GetRecordRequest(name=key)
+    stub = services.KeyValueStoreStub(channel)
+    get_request = protos.GetRecordRequest(name=key)
     record = stub.GetRecord(get_request)
     return record.value
 
@@ -20,9 +19,9 @@ def get(server, key, channel=None):
 
 
 def _create(channel, key, value):
-    stub = key_value_pb2_grpc.KeyValueStoreStub(channel)
-    create_request = key_value_pb2.CreateRecordRequest(
-        record=key_value_pb2.Record(
+    stub = services.KeyValueStoreStub(channel)
+    create_request = protos.CreateRecordRequest(
+        record=protos.Record(
             name=key,
             value=value,
         ))
@@ -38,9 +37,9 @@ def create(server, key, value, channel=None):
 
 
 def _update(channel, key, value):
-    stub = key_value_pb2_grpc.KeyValueStoreStub(channel)
-    update_request = key_value_pb2.UpdateRecordRequest(
-        record=key_value_pb2.Record(
+    stub = services.KeyValueStoreStub(channel)
+    update_request = protos.UpdateRecordRequest(
+        record=protos.Record(
             name=key,
             value=value,
         ))
@@ -56,8 +55,8 @@ def update(server, key, value, channel=None):
 
 
 def _watch(channel, key):
-    stub = key_value_pb2_grpc.KeyValueStoreStub(channel)
-    watch_request = key_value_pb2.WatchRecordRequest(name=key)
+    stub = services.KeyValueStoreStub(channel)
+    watch_request = protos.WatchRecordRequest(name=key)
     for record in stub.WatchRecord(watch_request):
         yield record.value
 

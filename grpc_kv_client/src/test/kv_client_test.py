@@ -1,17 +1,22 @@
 import concurrent.futures
+import os
 import unittest
+import sys
 
 import grpc
 import grpc_testing
 
 import grpc_kv_client
 
-import key_value_pb2
-import key_value_pb2_grpc
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
+
+protos = grpc.protos("key_value.proto")
+services = grpc.services("key_value.proto")
 
 
 def _get_method(method_name):
-    return key_value_pb2.DESCRIPTOR.services_by_name[
+    return protos.DESCRIPTOR.services_by_name[
         "KeyValueStore"].methods_by_name[method_name]
 
 
@@ -19,7 +24,7 @@ class TestGrpcKeyValueClient(unittest.TestCase):
     def test_create_with_mock_server(self):
         thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
         fake_channel = grpc_testing.channel(
-            key_value_pb2.DESCRIPTOR.services_by_name.values(),
+            protos.DESCRIPTOR.services_by_name.values(),
             grpc_testing.strict_real_time())
         # Offload the request to another thread so we can use this thread to
         # fake the server-side results.
@@ -34,7 +39,7 @@ class TestGrpcKeyValueClient(unittest.TestCase):
             _get_method("CreateRecord")))
         rpc.send_initial_metadata(())
         rpc.terminate(
-            key_value_pb2.Record(name="golden-retriever", value="pancakes"),
+            protos.Record(name="golden-retriever", value="pancakes"),
             (), grpc.StatusCode.OK, "")
         # Ensure the client had the correct response.
         result = result_future.result()
